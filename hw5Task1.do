@@ -23,4 +23,18 @@ reg invrate invrate_lag i.year
 
 xtreg invrate invrate_lag i.year, fe
 
+*2SLS estimate using the second lagged variable and first differences
+
+sort firm year
+by firm: gen invrate_lag2 = invrate_lag[_n-1]
+by firm: gen invrate_lag3=invrate_lag2[_n-1]
+
+ivregress 2sls d.invrate i.year (d.invrate_lag=invrate_lag2)
+
+*gmm estimator
+
+*gmm (invrate-invrate_lag*{b1}-{b2}-i.year), instruments(invrate_lag2 invrate_lag3)
+
+
+
 
