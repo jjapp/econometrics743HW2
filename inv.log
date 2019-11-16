@@ -1,0 +1,325 @@
+------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /home/appertjt/Documents/GradSchool/econometricsFall19/homework2/repo/econometrics743HW2/inv.log
+  log type:  text
+ opened on:  15 Nov 2019, 20:48:58
+
+. 
+. *Ordinary least squares
+. *Start with creating a lagged variable for investment rate
+. *Need to sort by firm and by year
+. sort firm year
+
+. by firm: gen invrate_lag = invrate[_n-1]
+(703 missing values generated)
+
+. 
+. reg invrate invrate_lag i.year, robust
+
+Linear regression                               Number of obs     =      4,966
+                                                F(13, 4952)       =      20.82
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0828
+                                                Root MSE          =     .12325
+
+------------------------------------------------------------------------------
+             |               Robust
+     invrate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ invrate_lag |   .2668748    .019044    14.01   0.000     .2295402    .3042094
+             |
+        year |
+       1989  |   .0117017   .0185858     0.63   0.529    -.0247347    .0481381
+       1990  |  -.0207518   .0188639    -1.10   0.271    -.0577334    .0162299
+       1991  |  -.0389914   .0178562    -2.18   0.029    -.0739974   -.0039854
+       1992  |  -.0266434   .0176001    -1.51   0.130    -.0611473    .0078606
+       1993  |  -.0298507   .0175135    -1.70   0.088    -.0641848    .0044835
+       1994  |  -.0230369   .0175715    -1.31   0.190    -.0574849    .0114111
+       1995  |  -.0157777   .0175294    -0.90   0.368    -.0501431    .0185878
+       1996  |  -.0229774   .0174225    -1.32   0.187    -.0571332    .0111785
+       1997  |  -.0230178   .0178666    -1.29   0.198    -.0580443    .0120087
+       1998  |  -.0164674   .0181027    -0.91   0.363    -.0519567    .0190218
+       1999  |  -.0238043   .0192515    -1.24   0.216    -.0615459    .0139373
+       2000  |   -.043302   .0197696    -2.19   0.029    -.0820591   -.0045449
+             |
+       _cons |   .1218266   .0172059     7.08   0.000     .0880953    .1555578
+------------------------------------------------------------------------------
+
+. 
+. *Now do the same regression using the instructions from Fossen's do file
+. 
+. tsset firm year, yearly
+       panel variable:  firm (unbalanced)
+        time variable:  year, 1987 to 2000
+                delta:  1 year
+
+. 
+. xi: regress invrate l.invrate i.year, robust cluster(firm)
+i.year            _Iyear_1987-2000    (naturally coded; _Iyear_1987 omitted)
+note: _Iyear_1988 omitted because of collinearity
+
+Linear regression                               Number of obs     =      4,966
+                                                F(13, 702)        =      20.31
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0828
+                                                Root MSE          =     .12325
+
+                                 (Std. Err. adjusted for 703 clusters in firm)
+------------------------------------------------------------------------------
+             |               Robust
+     invrate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     invrate |
+         L1. |   .2668748   .0185799    14.36   0.000     .2303959    .3033536
+             |
+ _Iyear_1988 |          0  (omitted)
+ _Iyear_1989 |   .0117017   .0186407     0.63   0.530    -.0248964    .0482998
+ _Iyear_1990 |  -.0207518   .0174746    -1.19   0.235    -.0550604    .0135569
+ _Iyear_1991 |  -.0389914   .0180302    -2.16   0.031    -.0743909   -.0035918
+ _Iyear_1992 |  -.0266434   .0175064    -1.52   0.128    -.0610145    .0077277
+ _Iyear_1993 |  -.0298507   .0174987    -1.71   0.088    -.0642066    .0045053
+ _Iyear_1994 |  -.0230369   .0176079    -1.31   0.191    -.0576074    .0115337
+ _Iyear_1995 |  -.0157777     .01733    -0.91   0.363    -.0498025    .0182471
+ _Iyear_1996 |  -.0229774   .0173951    -1.32   0.187      -.05713    .0111753
+ _Iyear_1997 |  -.0230178   .0178574    -1.29   0.198    -.0580781    .0120424
+ _Iyear_1998 |  -.0164674   .0179287    -0.92   0.359    -.0516678    .0187329
+ _Iyear_1999 |  -.0238043   .0193776    -1.23   0.220    -.0618492    .0142406
+ _Iyear_2000 |   -.043302   .0199293    -2.17   0.030    -.0824302   -.0041738
+       _cons |   .1218266   .0172542     7.06   0.000     .0879506    .1557025
+------------------------------------------------------------------------------
+
+. 
+. *Both methods return the same results for coefficients but slightly different standard errors
+. 
+. 
+. *Do the within groups regression
+. *Note: this is currently returning a higher value than paper
+. *FF says to expect this difference in assignment.
+. 
+. xtreg invrate invrate_lag i.year, fe
+
+Fixed-effects (within) regression               Number of obs     =      4,966
+Group variable: firm                            Number of groups  =        703
+
+R-sq:                                           Obs per group:
+     within  = 0.0342                                         min =          3
+     between = 0.0244                                         avg =        7.1
+     overall = 0.0090                                         max =         13
+
+                                                F(13,4250)        =      11.57
+corr(u_i, Xb)  = -0.1512                        Prob > F          =     0.0000
+
+------------------------------------------------------------------------------
+     invrate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ invrate_lag |  -.0069687   .0155685    -0.45   0.654     -.037491    .0235537
+             |
+        year |
+       1989  |  -.0007833   .0143968    -0.05   0.957    -.0290085    .0274419
+       1990  |  -.0379181   .0142357    -2.66   0.008    -.0658275   -.0100087
+       1991  |  -.0697115   .0142365    -4.90   0.000    -.0976225   -.0418004
+       1992  |  -.0684519   .0142355    -4.81   0.000    -.0963609   -.0405429
+       1993  |  -.0731719   .0141814    -5.16   0.000    -.1009749   -.0453689
+       1994  |  -.0688035   .0141221    -4.87   0.000    -.0964901   -.0411168
+       1995  |  -.0645893   .0141369    -4.57   0.000     -.092305   -.0368735
+       1996  |  -.0731357   .0141608    -5.16   0.000    -.1008984   -.0453731
+       1997  |   -.079783   .0142694    -5.59   0.000    -.1077584   -.0518076
+       1998  |  -.0750013   .0144441    -5.19   0.000    -.1033193   -.0466832
+       1999  |  -.0842675   .0147578    -5.71   0.000    -.1132004   -.0553346
+       2000  |   -.110215   .0158722    -6.94   0.000    -.1413327   -.0790972
+             |
+       _cons |    .207273   .0134439    15.42   0.000      .180916      .23363
+-------------+----------------------------------------------------------------
+     sigma_u |  .08380544
+     sigma_e |  .11564545
+         rho |  .34432884   (fraction of variance due to u_i)
+------------------------------------------------------------------------------
+F test that all u_i=0: F(702, 4250) = 1.96                   Prob > F = 0.0000
+
+. 
+. 
+. *2SLS estimate using the second lagged variable and first differences
+. 
+. sort firm year
+
+. by firm: gen invrate_lag2 = invrate_lag[_n-1]
+(1,406 missing values generated)
+
+. by firm: gen invrate_lag3=invrate_lag2[_n-1]
+(2,109 missing values generated)
+
+. 
+. ivregress 2sls d.invrate i.year (d.invrate_lag=invrate_lag2), robust cluster(firm)
+note: 1987.year identifies no observations in the sample
+note: 1988.year identifies no observations in the sample
+note: 2000.year omitted because of collinearity
+
+Instrumental variables (2SLS) regression          Number of obs   =      4,263
+                                                  Wald chi2(12)   =      82.10
+                                                  Prob > chi2     =     0.0000
+                                                  R-squared       =          .
+                                                  Root MSE        =     .16546
+
+                                 (Std. Err. adjusted for 703 clusters in firm)
+------------------------------------------------------------------------------
+             |               Robust
+   D.invrate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ invrate_lag |
+         D1. |   .1625582    .036222     4.49   0.000     .0915644    .2335521
+             |
+        year |
+       1987  |          0  (empty)
+       1988  |          0  (empty)
+       1989  |   .0175129   .0278973     0.63   0.530    -.0371647    .0721905
+       1990  |  -.0128438   .0208861    -0.61   0.539    -.0537798    .0280923
+       1991  |  -.0064921   .0196981    -0.33   0.742    -.0450997    .0321155
+       1992  |   .0301324   .0185233     1.63   0.104    -.0061727    .0664374
+       1993  |   .0209974     .01846     1.14   0.255    -.0151835    .0571783
+       1994  |   .0243187   .0184001     1.32   0.186    -.0117448    .0603821
+       1995  |   .0265223   .0182083     1.46   0.145    -.0091654      .06221
+       1996  |   .0114813   .0185391     0.62   0.536    -.0248546    .0478172
+       1997  |   .0155013   .0178183     0.87   0.384     -.019422    .0504245
+       1998  |   .0291769   .0189019     1.54   0.123    -.0078702     .066224
+       1999  |   .0074461   .0252147     0.30   0.768    -.0419739    .0568661
+       2000  |          0  (omitted)
+             |
+       _cons |  -.0237391   .0170797    -1.39   0.165    -.0572146    .0097364
+------------------------------------------------------------------------------
+Instrumented:  D.invrate_lag
+Instruments:   1989.year 1990.year 1991.year 1992.year 1993.year 1994.year
+               1995.year 1996.year 1997.year 1998.year 1999.year
+               invrate_lag2
+
+. 
+. *gmm estimator
+. 
+. xi: xtabond invrate i.year , maxldep(2) robust
+i.year            _Iyear_1987-2000    (naturally coded; _Iyear_1987 omitted)
+note: _Iyear_1988 dropped because of collinearity
+
+Arellano-Bond dynamic panel-data estimation     Number of obs     =      4,263
+Group variable: firm                            Number of groups  =        703
+Time variable: year
+                                                Obs per group:
+                                                              min =          2
+                                                              avg =   6.064011
+                                                              max =         12
+
+Number of instruments =     36                  Wald chi2(13)     =     157.96
+                                                Prob > chi2       =     0.0000
+One-step results
+                                   (Std. Err. adjusted for clustering on firm)
+------------------------------------------------------------------------------
+             |               Robust
+     invrate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     invrate |
+         L1. |   .1592601   .0327361     4.86   0.000     .0950985    .2234218
+             |
+ _Iyear_1989 |  -.0107714    .017616    -0.61   0.541    -.0452982    .0237554
+ _Iyear_1990 |  -.0484577   .0179135    -2.71   0.007    -.0835674    -.013348
+ _Iyear_1991 |  -.0769807   .0175391    -4.39   0.000    -.1113568   -.0426046
+ _Iyear_1992 |  -.0723108   .0172751    -4.19   0.000    -.1061695   -.0384522
+ _Iyear_1993 |  -.0759606   .0173499    -4.38   0.000    -.1099657   -.0419555
+ _Iyear_1994 |  -.0762196   .0174456    -4.37   0.000    -.1104123   -.0420268
+ _Iyear_1995 |  -.0733835   .0173738    -4.22   0.000    -.1074355   -.0393315
+ _Iyear_1996 |  -.0861784   .0173765    -4.96   0.000    -.1202358    -.052121
+ _Iyear_1997 |  -.0936953   .0180486    -5.19   0.000    -.1290699   -.0583208
+ _Iyear_1998 |  -.0876543   .0184572    -4.75   0.000    -.1238298   -.0514788
+ _Iyear_1999 |  -.1042047   .0198282    -5.26   0.000    -.1430672   -.0653423
+ _Iyear_2000 |  -.1286904   .0223441    -5.76   0.000    -.1724841   -.0848967
+       _cons |   .1921735   .0173057    11.10   0.000     .1582549     .226092
+------------------------------------------------------------------------------
+Instruments for differenced equation
+        GMM-type: L(2/3).invrate
+        Standard: D._Iyear_1988 D._Iyear_1989 D._Iyear_1990 D._Iyear_1991
+                  D._Iyear_1992 D._Iyear_1993 D._Iyear_1994 D._Iyear_1995
+                  D._Iyear_1996 D._Iyear_1997 D._Iyear_1998 D._Iyear_1999
+                  D._Iyear_2000
+Instruments for level equation
+        Standard: _cons
+
+. 
+. *test for serial correlation
+. estat abond
+
+Arellano-Bond test for zero autocorrelation in first-differenced errors
+  +-----------------------+
+  |Order |  z     Prob > z|
+  |------+----------------|
+  |   1  |-10.914  0.0000 |
+  |   2  | .52212  0.6016 |
+  +-----------------------+
+   H0: no autocorrelation 
+
+. 
+. 
+. *Now run it again without restrictions on the levels
+. 
+. xi: xtabond invrate i.year , robust
+i.year            _Iyear_1987-2000    (naturally coded; _Iyear_1987 omitted)
+note: _Iyear_1988 dropped because of collinearity
+
+Arellano-Bond dynamic panel-data estimation     Number of obs     =      4,263
+Group variable: firm                            Number of groups  =        703
+Time variable: year
+                                                Obs per group:
+                                                              min =          2
+                                                              avg =   6.064011
+                                                              max =         12
+
+Number of instruments =     91                  Wald chi2(13)     =     160.93
+                                                Prob > chi2       =     0.0000
+One-step results
+                                   (Std. Err. adjusted for clustering on firm)
+------------------------------------------------------------------------------
+             |               Robust
+     invrate |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     invrate |
+         L1. |   .1559496   .0317628     4.91   0.000     .0936957    .2182035
+             |
+ _Iyear_1989 |   -.001453   .0164401    -0.09   0.930     -.033675     .030769
+ _Iyear_1990 |  -.0391626   .0171618    -2.28   0.022     -.072799   -.0055261
+ _Iyear_1991 |  -.0674034   .0165314    -4.08   0.000    -.0998043   -.0350024
+ _Iyear_1992 |  -.0622011   .0164367    -3.78   0.000    -.0944165   -.0299856
+ _Iyear_1993 |  -.0653611   .0164824    -3.97   0.000     -.097666   -.0330563
+ _Iyear_1994 |  -.0663283   .0164782    -4.03   0.000    -.0986251   -.0340316
+ _Iyear_1995 |  -.0630385   .0163531    -3.85   0.000      -.09509    -.030987
+ _Iyear_1996 |  -.0754774   .0163788    -4.61   0.000    -.1075793   -.0433754
+ _Iyear_1997 |  -.0832997   .0170433    -4.89   0.000    -.1167039   -.0498954
+ _Iyear_1998 |  -.0775998   .0174256    -4.45   0.000    -.1117534   -.0434462
+ _Iyear_1999 |  -.0944478   .0188996    -5.00   0.000    -.1314903   -.0574054
+ _Iyear_2000 |   -.119053   .0214867    -5.54   0.000    -.1611661   -.0769399
+       _cons |   .1828078   .0166438    10.98   0.000     .1501866    .2154289
+------------------------------------------------------------------------------
+Instruments for differenced equation
+        GMM-type: L(2/.).invrate
+        Standard: D._Iyear_1988 D._Iyear_1989 D._Iyear_1990 D._Iyear_1991
+                  D._Iyear_1992 D._Iyear_1993 D._Iyear_1994 D._Iyear_1995
+                  D._Iyear_1996 D._Iyear_1997 D._Iyear_1998 D._Iyear_1999
+                  D._Iyear_2000
+Instruments for level equation
+        Standard: _cons
+
+. 
+. *test for serial correlation
+. estat abond
+
+Arellano-Bond test for zero autocorrelation in first-differenced errors
+  +-----------------------+
+  |Order |  z     Prob > z|
+  |------+----------------|
+  |   1  |-11.121  0.0000 |
+  |   2  | .46236  0.6438 |
+  +-----------------------+
+   H0: no autocorrelation 
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /home/appertjt/Documents/GradSchool/econometricsFall19/homework2/repo/econometrics743HW2/inv.log
+  log type:  text
+ closed on:  15 Nov 2019, 20:48:59
+------------------------------------------------------------------------------------------------------------------------------------
