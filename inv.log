@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  /home/appertjt/Documents/GradSchool/econometricsFall19/homework2/repo/econometrics743HW2/inv.log
   log type:  text
- opened on:  15 Nov 2019, 20:48:58
+ opened on:  17 Nov 2019, 16:09:22
 
 . 
 . *Ordinary least squares
@@ -136,7 +136,6 @@ corr(u_i, Xb)  = -0.1512                        Prob > F          =     0.0000
 ------------------------------------------------------------------------------
 F test that all u_i=0: F(702, 4250) = 1.96                   Prob > F = 0.0000
 
-. 
 . 
 . *2SLS estimate using the second lagged variable and first differences
 . 
@@ -317,9 +316,346 @@ Arellano-Bond test for zero autocorrelation in first-differenced errors
    H0: no autocorrelation 
 
 . 
+. clear
+
+. use usbal89
+
+. tsset id year , yearly
+       panel variable:  id (strongly balanced)
+        time variable:  year, 1982 to 1989
+                delta:  1 year
+
+. *Column 1*
+. regress y n n_1 k k_1 y_1 i.year , robust cluster(id)
+
+Linear regression                               Number of obs     =      3,563
+                                                F(11, 508)        =   75113.93
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.9949
+                                                Root MSE          =      .1426
+
+                                   (Std. Err. adjusted for 509 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           y |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+           n |   .4789653   .0288963    16.58   0.000     .4221944    .5357362
+         n_1 |  -.4233997   .0305806   -13.85   0.000    -.4834797   -.3633198
+           k |   .2348098   .0352859     6.65   0.000     .1654854    .3041341
+         k_1 |  -.2120621   .0347141    -6.11   0.000     -.280263   -.1438613
+         y_1 |   .9216418   .0105283    87.54   0.000     .9009575    .9423261
+             |
+        year |
+       1984  |   .0661134   .0096619     6.84   0.000     .0471313    .0850956
+       1985  |   .0127151   .0101712     1.25   0.212    -.0072678     .032698
+       1986  |    .034839   .0102827     3.39   0.001     .0146373    .0550408
+       1987  |   .0767564   .0086928     8.83   0.000     .0596782    .0938346
+       1988  |   .0779253   .0094209     8.27   0.000     .0594167     .096434
+       1989  |   .0356445   .0097659     3.65   0.000     .0164579    .0548311
+             |
+       _cons |    .246604   .0322971     7.64   0.000     .1831516    .3100564
+------------------------------------------------------------------------------
+
+. *Column 2*
+. xtreg y n n_1 k k_1 y_1 i.year , fe robust cluster(id)
+
+Fixed-effects (within) regression               Number of obs     =      3,563
+Group variable: id                              Number of groups  =        509
+
+R-sq:                                           Obs per group:
+     within  = 0.7825                                         min =          7
+     between = 0.9879                                         avg =        7.0
+     overall = 0.9847                                         max =          7
+
+                                                F(11,508)         =     345.86
+corr(u_i, Xb)  = 0.7191                         Prob > F          =     0.0000
+
+                                   (Std. Err. adjusted for 509 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+           y |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+           n |   .4880013   .0299207    16.31   0.000     .4292178    .5467848
+         n_1 |  -.0231194     .03455    -0.67   0.504    -.0909977     .044759
+           k |   .1765454   .0340853     5.18   0.000     .1095799    .2435109
+         k_1 |  -.1305487   .0252882    -5.16   0.000    -.1802311   -.0808663
+         y_1 |   .4039344   .0293221    13.78   0.000     .3463269    .4615418
+             |
+        year |
+       1984  |   .0564054   .0074048     7.62   0.000     .0418576    .0709533
+       1985  |   .0271379   .0092935     2.92   0.004     .0088795    .0453963
+       1986  |   .0494812   .0116301     4.25   0.000     .0266322    .0723302
+       1987  |   .1033078   .0116548     8.86   0.000     .0804104    .1262053
+       1988  |   .1310847     .01305    10.04   0.000     .1054461    .1567234
+       1989  |   .1174383   .0150838     7.79   0.000      .087804    .1470726
+             |
+       _cons |   2.625541   .1591593    16.50   0.000      2.31285    2.938233
+-------------+----------------------------------------------------------------
+     sigma_u |  .31731619
+     sigma_e |  .12076713
+         rho |  .87347826   (fraction of variance due to u_i)
+------------------------------------------------------------------------------
+
+. ssc install xtabond2
+checking xtabond2 consistency and verifying not already installed...
+all files already exist and are up to date.
+
+. *Column 3*
+. xtabond2 y n n_1 k k_1 y_1 i.year, gmm(y n k, lag(2 .)) iv(i.year) robust noleveleq
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate robust weighting matrix for Hansen test.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, one-step difference GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =      3054
+Time variable : year                            Number of groups   =       509
+Number of instruments = 69                      Obs per group: min =         6
+Wald chi2(13) =   1340.23                                      avg =      6.00
+Prob > chi2   =     0.000                                      max =         6
+------------------------------------------------------------------------------
+             |               Robust
+           y |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+           n |   .5128697   .0892432     5.75   0.000     .3379563    .6877831
+         n_1 |   .0726061   .0927269     0.78   0.434    -.1091353    .2543474
+           k |   .1318291   .1179029     1.12   0.264    -.0992563    .3629144
+         k_1 |  -.2066298   .0949589    -2.18   0.030    -.3927458   -.0205137
+         y_1 |   .3264209   .0521606     6.26   0.000     .2241881    .4286538
+             |
+        year |
+       1982  |          0  (empty)
+       1983  |  -.0565042   .0139574    -4.05   0.000    -.0838602   -.0291482
+       1984  |   .0111054   .0092835     1.20   0.232    -.0070898    .0293007
+       1985  |          0  (omitted)
+       1986  |   .0347948   .0098768     3.52   0.000     .0154366    .0541531
+       1987  |   .0987342   .0126165     7.83   0.000     .0740063    .1234621
+       1988  |   .1363566   .0146547     9.30   0.000      .107634    .1650792
+       1989  |   .1334924    .017638     7.57   0.000     .0989225    .1680623
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(1982b.year 1983.year 1984.year 1985.year 1986.year 1987.year 1988.year
+    1989.year)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(2/7).(y n k)
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -6.21  Pr > z =  0.000
+Arellano-Bond test for AR(2) in first differences: z =  -1.36  Pr > z =  0.173
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(56)   = 213.56  Prob > chi2 =  0.000
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(56)   =  98.39  Prob > chi2 =  0.000
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  iv(1982b.year 1983.year 1984.year 1985.year 1986.year 1987.year 1988.year 1989.year)
+    Hansen test excluding group:     chi2(50)   =  78.58  Prob > chi2 =  0.006
+    Difference (null H = exogenous): chi2(6)    =  19.81  Prob > chi2 =  0.003
+
+
+. *Column 4*
+. xtabond2 y n n_1 k k_1 y_1 i.year, gmm(y n k, lag(3 .)) iv(i.year) robust noleveleq
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate robust weighting matrix for Hansen test.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, one-step difference GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =      3054
+Time variable : year                            Number of groups   =       509
+Number of instruments = 51                      Obs per group: min =         6
+Wald chi2(13) =   1665.43                                      avg =      6.00
+Prob > chi2   =     0.000                                      max =         6
+------------------------------------------------------------------------------
+             |               Robust
+           y |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+           n |   .4987448    .101461     4.92   0.000     .2998848    .6976047
+         n_1 |  -.1469956    .113259    -1.30   0.194    -.3689792     .074988
+           k |   .1940721    .153916     1.26   0.207    -.1075977    .4957419
+         k_1 |  -.1054642    .109791    -0.96   0.337    -.3206507    .1097223
+         y_1 |   .4261318   .0791759     5.38   0.000       .27095    .5813137
+             |
+        year |
+       1982  |          0  (empty)
+       1983  |  -.0250824   .0189921    -1.32   0.187    -.0623063    .0121415
+       1984  |   .0301923   .0111131     2.72   0.007      .008411    .0519736
+       1985  |          0  (omitted)
+       1986  |   .0185117   .0100543     1.84   0.066    -.0011944    .0382178
+       1987  |   .0676855   .0144321     4.69   0.000     .0393991    .0959719
+       1988  |   .0945232   .0177249     5.33   0.000      .059783    .1292634
+       1989  |   .0792494   .0244059     3.25   0.001     .0314147    .1270841
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  Standard
+    D.(1982b.year 1983.year 1984.year 1985.year 1986.year 1987.year 1988.year
+    1989.year)
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(3/7).(y n k)
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -5.09  Pr > z =  0.000
+Arellano-Bond test for AR(2) in first differences: z =  -0.79  Pr > z =  0.429
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(38)   =  86.43  Prob > chi2 =  0.000
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(38)   =  53.66  Prob > chi2 =  0.047
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  iv(1982b.year 1983.year 1984.year 1985.year 1986.year 1987.year 1988.year 1989.year)
+    Hansen test excluding group:     chi2(32)   =  45.74  Prob > chi2 =  0.055
+    Difference (null H = exogenous): chi2(6)    =   7.92  Prob > chi2 =  0.244
+
+
+. *Column 5*
+. xtabond2 y n n_1 k k_1 y_1 i.year, gmm(y n k, lag(2 .)) iv(i.year, equation(level)) robust h(1)
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate robust weighting matrix for Hansen test.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, one-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =      3563
+Time variable : year                            Number of groups   =       509
+Number of instruments = 88                      Obs per group: min =         7
+Wald chi2(13) =   4345.77                                      avg =      7.00
+Prob > chi2   =     0.000                                      max =         7
+------------------------------------------------------------------------------
+             |               Robust
+           y |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+           n |   .6239711   .1078013     5.79   0.000     .4126843    .8352578
+         n_1 |  -.0925121    .109246    -0.85   0.397    -.3066303     .121606
+           k |   .3666974    .130163     2.82   0.005     .1115826    .6218122
+         k_1 |  -.3304688   .1063253    -3.11   0.002    -.5388625   -.1220752
+         y_1 |   .4650298   .0520106     8.94   0.000     .3630909    .5669688
+             |
+        year |
+       1982  |          0  (empty)
+       1983  |  -.1039113   .0226092    -4.60   0.000    -.1482245   -.0595981
+       1984  |  -.0564042   .0177351    -3.18   0.001    -.0911643   -.0216441
+       1985  |  -.0804099   .0139991    -5.74   0.000    -.1078477   -.0529721
+       1986  |   -.051231   .0112871    -4.54   0.000    -.0733534   -.0291086
+       1987  |   .0005946   .0110937     0.05   0.957    -.0211487     .022338
+       1988  |   .0258688   .0096341     2.69   0.007     .0069863    .0447512
+       1989  |          0  (omitted)
+             |
+       _cons |   2.322886    .249252     9.32   0.000     1.834361    2.811411
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(2/7).(y n k)
+Instruments for levels equation
+  Standard
+    1982b.year 1983.year 1984.year 1985.year 1986.year 1987.year 1988.year
+    1989.year
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    DL.(y n k)
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -8.17  Pr > z =  0.000
+Arellano-Bond test for AR(2) in first differences: z =  -0.60  Pr > z =  0.547
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(74)   = 118.62  Prob > chi2 =  0.001
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(74)   = 142.10  Prob > chi2 =  0.000
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(56)   =  97.03  Prob > chi2 =  0.001
+    Difference (null H = exogenous): chi2(18)   =  45.07  Prob > chi2 =  0.000
+  iv(1982b.year 1983.year 1984.year 1985.year 1986.year 1987.year 1988.year 1989.year, eq(level))
+    Hansen test excluding group:     chi2(68)   = 122.25  Prob > chi2 =  0.000
+    Difference (null H = exogenous): chi2(6)    =  19.85  Prob > chi2 =  0.003
+
+
+. *Column 6*
+. xtabond2 y n n_1 k k_1 y_1 i.year, gmm(y n k, lag(3 .)) iv(i.year, equation(level)) robust h(1)
+Favoring space over speed. To switch, type or click on mata: mata set matafavor speed, perm.
+Warning: Two-step estimated covariance matrix of moments is singular.
+  Using a generalized inverse to calculate robust weighting matrix for Hansen test.
+  Difference-in-Sargan/Hansen statistics may be negative.
+
+Dynamic panel-data estimation, one-step system GMM
+------------------------------------------------------------------------------
+Group variable: id                              Number of obs      =      3563
+Time variable : year                            Number of groups   =       509
+Number of instruments = 67                      Obs per group: min =         7
+Wald chi2(13) =   6449.27                                      avg =      7.00
+Prob > chi2   =     0.000                                      max =         7
+------------------------------------------------------------------------------
+             |               Robust
+           y |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+           n |   .4700393   .1128454     4.17   0.000     .2488664    .6912121
+         n_1 |  -.2833138   .1211054    -2.34   0.019     -.520676   -.0459517
+           k |   .3998962   .1525718     2.62   0.009      .100861    .6989314
+         k_1 |  -.2148848   .1198197    -1.79   0.073    -.4497271    .0199575
+         y_1 |   .6119346   .0995041     6.15   0.000     .4169102     .806959
+             |
+        year |
+       1982  |          0  (empty)
+       1983  |  -.0230382   .0181719    -1.27   0.205    -.0586544    .0125781
+       1984  |     .01967   .0170552     1.15   0.249    -.0137575    .0530975
+       1985  |  -.0275645   .0128499    -2.15   0.032    -.0527498   -.0023792
+       1986  |  -.0158706   .0118108    -1.34   0.179    -.0390194    .0072781
+       1987  |   .0252069   .0114847     2.19   0.028     .0026973    .0477165
+       1988  |   .0386584   .0094319     4.10   0.000     .0201722    .0571446
+       1989  |          0  (omitted)
+             |
+       _cons |   1.109807   .3611194     3.07   0.002     .4020261    1.817588
+------------------------------------------------------------------------------
+Instruments for first differences equation
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    L(3/7).(y n k)
+Instruments for levels equation
+  Standard
+    1982b.year 1983.year 1984.year 1985.year 1986.year 1987.year 1988.year
+    1989.year
+    _cons
+  GMM-type (missing=0, separate instruments for each period unless collapsed)
+    DL2.(y n k)
+------------------------------------------------------------------------------
+Arellano-Bond test for AR(1) in first differences: z =  -6.71  Pr > z =  0.000
+Arellano-Bond test for AR(2) in first differences: z =  -0.42  Pr > z =  0.672
+------------------------------------------------------------------------------
+Sargan test of overid. restrictions: chi2(53)   =  58.86  Prob > chi2 =  0.270
+  (Not robust, but not weakened by many instruments.)
+Hansen test of overid. restrictions: chi2(53)   =  75.80  Prob > chi2 =  0.022
+  (Robust, but weakened by many instruments.)
+
+Difference-in-Hansen tests of exogeneity of instrument subsets:
+  GMM instruments for levels
+    Hansen test excluding group:     chi2(38)   =  46.28  Prob > chi2 =  0.168
+    Difference (null H = exogenous): chi2(15)   =  29.53  Prob > chi2 =  0.014
+  iv(1982b.year 1983.year 1984.year 1985.year 1986.year 1987.year 1988.year 1989.year, eq(level))
+    Hansen test excluding group:     chi2(47)   =  64.28  Prob > chi2 =  0.048
+    Difference (null H = exogenous): chi2(6)    =  11.52  Prob > chi2 =  0.074
+
+
+. * test using testnl*
+. testnl _b[n_1]= -_b[n]*_b[y_1]
+
+  (1)  _b[n_1] = -_b[n]*_b[y_1]
+
+               chi2(1) =        0.01
+           Prob > chi2 =        0.9433
+
+. testnl _b[k_1]= -_b[k]*_b[y_1]
+
+  (1)  _b[k_1] = -_b[k]*_b[y_1]
+
+               chi2(1) =        0.29
+           Prob > chi2 =        0.5875
+
 . log close
       name:  <unnamed>
        log:  /home/appertjt/Documents/GradSchool/econometricsFall19/homework2/repo/econometrics743HW2/inv.log
   log type:  text
- closed on:  15 Nov 2019, 20:48:59
+ closed on:  17 Nov 2019, 16:09:30
 ------------------------------------------------------------------------------------------------------------------------------------

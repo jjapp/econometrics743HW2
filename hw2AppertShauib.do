@@ -7,7 +7,7 @@ use invrat1
 *summarize the data
 summarize
 
-*tab firm
+log using /home/appertjt/Documents/GradSchool/econometricsFall19/homework2/repo/econometrics743HW2/inv.log, replace
 
 *Ordinary least squares
 *Start with creating a lagged variable for investment rate
@@ -32,7 +32,6 @@ xi: regress invrate l.invrate i.year, robust cluster(firm)
 
 xtreg invrate invrate_lag i.year, fe
 
-
 *2SLS estimate using the second lagged variable and first differences
 
 sort firm year
@@ -45,8 +44,34 @@ ivregress 2sls d.invrate i.year (d.invrate_lag=invrate_lag2), robust cluster(fir
 
 xi: xtabond invrate i.year , maxldep(2) robust
 
+*test for serial correlation
+estat abond
+
 
 *Now run it again without restrictions on the levels
 
 xi: xtabond invrate i.year , robust
 
+*test for serial correlation
+estat abond
+
+clear
+use usbal89
+tsset id year , yearly
+*Column 1*
+regress y n n_1 k k_1 y_1 i.year , robust cluster(id)
+*Column 2*
+xtreg y n n_1 k k_1 y_1 i.year , fe robust cluster(id)
+ssc install xtabond2
+*Column 3*
+xtabond2 y n n_1 k k_1 y_1 i.year, gmm(y n k, lag(2 .)) iv(i.year) robust noleveleq
+*Column 4*
+xtabond2 y n n_1 k k_1 y_1 i.year, gmm(y n k, lag(3 .)) iv(i.year) robust noleveleq
+*Column 5*
+xtabond2 y n n_1 k k_1 y_1 i.year, gmm(y n k, lag(2 .)) iv(i.year, equation(level)) robust h(1)
+*Column 6*
+xtabond2 y n n_1 k k_1 y_1 i.year, gmm(y n k, lag(3 .)) iv(i.year, equation(level)) robust h(1)
+* test using testnl*
+testnl _b[n_1]= -_b[n]*_b[y_1]
+testnl _b[k_1]= -_b[k]*_b[y_1]
+log close
